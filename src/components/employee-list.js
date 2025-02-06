@@ -12,7 +12,7 @@ export class EmployeeList extends LitElement {
     }
 
     section {
-      padding: 20px;
+      padding: 5px 20px 20px;
     }
 
     button:hover,
@@ -42,7 +42,6 @@ export class EmployeeList extends LitElement {
       background-color: white;
       padding: 0 20px;
     }
-
     .header__container img {
       height: 30px;
     }
@@ -90,6 +89,7 @@ export class EmployeeList extends LitElement {
       height: 15px;
       cursor: pointer;
     }
+
     .main {
       display: flex;
       justify-content: center;
@@ -97,15 +97,29 @@ export class EmployeeList extends LitElement {
 
     .container {
       width: 100%;
-      margin: 20px auto;
+      margin: 10px auto;
       padding: 0 50px;
       border-radius: 10px;
     }
 
-    h2 {
-      color: #ff6600;
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      img {
+        height: 23px;
+        margin-left: 13px;
+        cursor: pointer;
+      }
+      h2 {
+        font-size: 23px;
+        font-weight: 100;
+        color: #ff6600;
+      }
     }
 
+    /* Table Styles */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -141,6 +155,39 @@ export class EmployeeList extends LitElement {
     .actions img {
       height: 20px;
       cursor: pointer;
+    }
+
+    /* List Styles */
+    .list-view {
+      display: flex;
+      gap: 1%;
+      flex-wrap: wrap;
+    }
+
+    .list-item {
+      flex: 1 1 calc(31% - 10px); /* flex-grow, flex-shrink, flex-basis */
+      max-width: 31.3%;
+      margin-bottom: 15px;
+      background-color: white;
+      border: 1px solid rgba(255, 102, 0, 0.2);
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+      div {
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      p {
+        margin: 0;
+      }
+      p:first-child {
+        font-size: 14px;
+        font-weight: 900;
+      }
     }
 
     .pagination {
@@ -202,17 +249,16 @@ export class EmployeeList extends LitElement {
       display: flex;
       align-items: center;
       justify-content: space-between;
-    }
 
-    .popup__header h2 {
-      color: #ff6600;
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .popup__header img {
-      height: 20px;
-      cursor: pointer;
+      h2 {
+        color: #ff6600;
+        margin: 0;
+        font-size: 20px;
+      }
+      img {
+        height: 20px;
+        cursor: pointer;
+      }
     }
 
     .popup button {
@@ -240,6 +286,11 @@ export class EmployeeList extends LitElement {
       section {
         padding: 10px;
       }
+
+      .list-item {
+        flex: 1 1 calc(49% - 20px); /* flex-grow, flex-shrink, flex-basis */
+        max-width: 49.5%;
+      }
     }
     @media screen and (max-width: 992px) {
       section {
@@ -261,6 +312,20 @@ export class EmployeeList extends LitElement {
         padding: 10px;
         font-size: 12px;
       }
+
+      .list-item {
+        width: calc(45% - 10px);
+      }
+    }
+    @media screen and (max-width: 600px) {
+      .list-view {
+        gap: 0;
+      }
+
+      .list-item {
+        flex: 1 1 calc(100% - 20px); /* flex-grow, flex-shrink, flex-basis */
+        max-width: 101%;
+      }
     }
   `;
 
@@ -271,16 +336,18 @@ export class EmployeeList extends LitElement {
     showPopup: { type: Boolean },
     selectedEmployee: { type: Object },
     lang: { type: String },
+    viewMode: { type: String }, // New property to track the view mode
   };
 
   constructor() {
     super();
     this.currentPage = 1;
-    this.itemsPerPage = 1;
+    this.itemsPerPage = 9;
     this.employees = [];
     this.showPopup = false;
     this.selectedEmployee = null;
-    this.lang = localStorage.getItem('lang') || 'en'; // Varsayılan dil 'en'
+    this.lang = localStorage.getItem('lang') || 'en';
+    this.viewMode = 'table'; // Default view mode is table
     store.subscribe(this._updateEmployees.bind(this));
     this.employees = store.employees;
   }
@@ -328,80 +395,167 @@ export class EmployeeList extends LitElement {
     this.requestUpdate();
   }
 
+  tabeView() {
+    this.viewMode = 'table';
+  }
+  listView() {
+    this.viewMode = 'list';
+  }
+
+  renderTableView() {
+    return html`
+      <table>
+        <thead>
+          <tr>
+            <th>${i18next.t('firstName')}</th>
+            <th>${i18next.t('lastName')}</th>
+            <th>${i18next.t('dateOfEmployment')}</th>
+            <th>${i18next.t('dateOfBirth')}</th>
+            <th>${i18next.t('phone')}</th>
+            <th>${i18next.t('email')}</th>
+            <th>${i18next.t('department')}</th>
+            <th>${i18next.t('position')}</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${this.paginatedEmployees.map(
+            (employee) => html`
+              <tr>
+                <td>${employee.firstName}</td>
+                <td>${employee.lastName}</td>
+                <td>${employee.dateOfEmployment}</td>
+                <td>${employee.dateOfBirth}</td>
+                <td>${employee.phone}</td>
+                <td>${employee.email}</td>
+                <td>${employee.department}</td>
+                <td>${employee.position}</td>
+                <td class="actions">
+                  <button @click="${() => this.handleEdit(employee)}">
+                    <img loading="lazy" src="/public/assets/pen.svg" />
+                  </button>
+                  <button @click="${() => this.openPopup(employee)}">
+                    <img loading="lazy" src="/public/assets/waste.svg" />
+                  </button>
+                </td>
+              </tr>
+            `
+          )}
+        </tbody>
+      </table>
+    `;
+  }
+
+  renderListView() {
+    return html`
+      <div class="list-view">
+        ${this.paginatedEmployees.map(
+          (employee) => html`
+            <div class="list-item">
+              <div>
+                <p>${i18next.t('firstName')}:</p>
+                <p>
+                  ${employee.firstName}
+                </p>
+              </div>
+              <div>
+                <p>${i18next.t('lastName')}:</p>
+                <p>
+                  ${employee.lastName}
+                </p>
+              </div>
+              <div>
+                <p>${i18next.t('dateOfEmployment')}:</p>
+                <p>
+                  ${employee.dateOfEmployment}
+                </p>
+              </div>
+              <div>
+                <p>${i18next.t('dateOfBirth')}:</p>
+                <p>
+                  ${employee.dateOfBirth}
+                </p>
+              </div>
+              <div>
+                <p>${i18next.t('phone')}:</p>
+                <p>
+                  ${employee.phone}
+                </p>
+              </div>
+              <div>
+                <p>${i18next.t('email')}:</p>
+                <p>
+                  ${employee.email}
+                </p>
+              </div>
+              <div>
+                <p>${i18next.t('department')}:</p>
+                <p>
+                  ${employee.department}
+                </p>
+              </div>
+              <div>
+                <p>${i18next.t('position')}:</p>
+                <p>
+                  ${employee.position}
+                </p>
+              </div>
+              <div class="actions">
+                <button @click="${() => this.handleEdit(employee)}">
+                  <img loading="lazy" src="/public/assets/pen.svg" />
+                </button>
+                <button @click="${() => this.openPopup(employee)}">
+                  <img loading="lazy" src="/public/assets/waste.svg" />
+                </button>
+              </div>
+            </div>
+          `
+        )}
+      </div>
+    `;
+  }
+
   render() {
     const totalPages = Math.ceil(this.employees.length / this.itemsPerPage);
     const prevColor = this.currentPage === 1 ? 'grey' : '#ff6600';
     const nextColor = this.currentPage === totalPages ? 'grey' : '#ff6600';
+
     return html`
       <section>
         <div class="headerup">
-          ${i18next.t('employeeList')} (Table View)
+          ${i18next.t('employeeList')} (${this.viewMode === 'table' ? 'Table' : 'List'} View)
         </div>
         <div class="header">
           <div class="header__container">
             <div class="header__logo">
-              <img src="/public/assets/ing.webp" />
+              <img loading="lazy" src="/public/assets/ing.webp" />
               <p>ING</p>
             </div>
             <div class="header__right">
               <div>
-                <img src="/public/assets/employees.svg" />
+                <img loading="lazy" src="/public/assets/employees.svg" />
                 <p>${i18next.t('employee')}</p>
               </div>
               <a href="/add-employee">
-                <img src="/public/assets/plus.svg" />
+                <img loading="lazy" src="/public/assets/plus.svg" />
                 ${i18next.t('addNewEmployee')}
               </a>
               <div class="flag">
-                <img src=${this.lang === 'en' ? '/public/assets/turkish.svg' : '/public/assets/english.svg'} @click=${() => this._changeLanguage(this.lang === 'en' ? 'tr' : 'en')} />
+                <img loading="lazy" src=${this.lang === 'en' ? '/public/assets/turkish.svg' : '/public/assets/english.svg'} @click=${() => this._changeLanguage(this.lang === 'en' ? 'tr' : 'en')} />
               </div>
             </div>
           </div>
         </div>
-
         <div class="main">
           <div class="container">
-            <h2>${i18next.t('employeeList')}</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>${i18next.t('firstName')}</th>
-                  <th>${i18next.t('lastName')}</th>
-                  <th>${i18next.t('dateOfEmployment')}</th>
-                  <th>${i18next.t('dateOfBirth')}</th>
-                  <th>${i18next.t('phone')}</th>
-                  <th>${i18next.t('email')}</th>
-                  <th>${i18next.t('department')}</th>
-                  <th>${i18next.t('position')}</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${this.paginatedEmployees.map(
-                  (employee) => html`
-                    <tr>
-                      <td>${employee.firstName}</td>
-                      <td>${employee.lastName}</td>
-                      <td>${employee.dateOfEmployment}</td>
-                      <td>${employee.dateOfBirth}</td>
-                      <td>${employee.phone}</td>
-                      <td>${employee.email}</td>
-                      <td>${employee.department}</td>
-                      <td>${employee.position}</td>
-                      <td class="actions">
-                        <button @click="${() => this.handleEdit(employee)}">
-                          <img src="/public/assets/pen.svg" />
-                        </button>
-                        <button @click="${() => this.openPopup(employee)}">
-                          <img src="/public/assets/waste.svg" />
-                        </button>
-                      </td>
-                    </tr>
-                  `
-                )}
-              </tbody>
-            </table>
-
+            <div class="table-header">
+              <h2>${i18next.t('employeeList')}</h2>
+              <div>
+                <img loading="lazy" src="/public/assets/tableline.svg" @click="${this.tabeView}" />
+                <img loading="lazy" src="/public/assets/list.svg" @click="${this.listView}" />
+              </div>
+            </div>
+            ${this.viewMode === 'table' ? this.renderTableView() : this.renderListView()}
             <div class="pagination">
               <button class="arrow" style="color: ${prevColor};" ?disabled="${this.currentPage === 1}" @click="${() => this.changePage(this.currentPage - 1)}">
                 &lt;
@@ -425,7 +579,7 @@ export class EmployeeList extends LitElement {
                 <div class="popup">
                   <div class="popup__header">
                     <h2>Are you sure?</h2>
-                    <img @click="${this.closePopup}" src="/public/assets/close.svg" />
+                    <img loading="lazy" @click="${this.closePopup}" src="/public/assets/close.svg" />
                   </div>
                   <p>
                     Selected Employee record of ${this.selectedEmployee ? this.selectedEmployee.firstName : ''} ${this.selectedEmployee ? this.selectedEmployee.lastName : ''} will be deleted.

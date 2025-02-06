@@ -24,7 +24,7 @@ export class EmployeeList extends LitElement {
       font-size: 11px;
       font-weight: 100;
       color: gray;
-      margin: 50px 0 10px;
+      margin: 10px 0;
       opacity: 0.6;
     }
 

@@ -13,8 +13,7 @@ export class EmployeeList extends LitElement {
       font-size: 11px;
       font-weight: 100;
       color: gray;
-      margin-left: 50px;
-      margin-top: 50px;
+      margin: 50px 0 10px 50px;
       opacity: 0.6;
     }
     .c-header {
@@ -29,24 +28,33 @@ export class EmployeeList extends LitElement {
       img {
         height: 30px;
       }
-      div {
+    }
+    .c-header__right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      p,
+      a {
+        color: #ff6600;
+        text-decoration: none;
+        font-size: 12px;
+      }
+      img {
+        height: 18px;
+      }
+      div,
+      a {
         display: flex;
         align-items: center;
-        gap: 20px;
-        p,
-        a {
-          color: #ff6600;
-          text-decoration: none;
-        }
+        gap: 5px;
       }
     }
+
     .container {
       width: 90%;
       margin: 20px auto;
-      padding: 20px;
+      padding: 5px 20px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      background: white;
     }
     h2 {
       color: #ff6600;
@@ -55,34 +63,32 @@ export class EmployeeList extends LitElement {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      background: white;
     }
     th,
     td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: left;
+      padding: 15px 10px;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.7;
     }
     th {
-      background: #f4f4f4;
       color: #ff6600;
     }
     .actions {
       display: flex;
-      gap: 8px;
-    }
-    .edit,
-    .delete {
-      cursor: pointer;
-      padding: 5px;
-      border-radius: 5px;
-      border: none;
-    }
-    .edit {
-      background: #ffcc00;
-    }
-    .delete {
-      background: #ff3300;
-      color: white;
+      justify-content: center;
+      align-items: center;
+      button {
+        background: white;
+        border: none;
+      }
+      img {
+        height: 20px;
+        cursor: pointer;
+      }
     }
     .pagination {
       margin-top: 10px;
@@ -92,13 +98,13 @@ export class EmployeeList extends LitElement {
     }
     .page {
       padding: 5px 10px;
-      border: 1px solid #ddd;
       cursor: pointer;
     }
     .active {
       background: #ff6600;
       color: white;
       border: none;
+      border-radius: 50%;
     }
     /* Popup Styling */
     .popup-overlay {
@@ -151,7 +157,7 @@ export class EmployeeList extends LitElement {
   constructor() {
     super();
     this.currentPage = 1;
-    this.itemsPerPage = 7;
+    this.itemsPerPage = 1;
     this.employees = [];
     this.showPopup = false;
     this.selectedEmployee = null;
@@ -205,9 +211,15 @@ export class EmployeeList extends LitElement {
       </div>
       <div class="c-header">
         <img src="https://www.ing.com.tr/F/Documents/Images/kurumsal_logo_genel_mudurluk/ING_Logo_TuruncuBG_Big.png" />
-        <div class="c-headerup__right">
-          <p>Employees</p>
-          <a href="/add-employee">+ Add New</a>
+        <div class="c-header__right">
+          <div>
+            <img src="/public/assets/employees.svg" />
+            <p>Employees</p>
+          </div>
+          <a href="/add-employee">
+            <img src="/public/assets/plus.svg" />
+            Add New</a
+          >
           <p>TR</p>
         </div>
       </div>
@@ -240,8 +252,12 @@ export class EmployeeList extends LitElement {
                   <td>${employee.department}</td>
                   <td>${employee.position}</td>
                   <td class="actions">
-                    <button class="edit" @click="${() => this.handleEdit(employee)}">✏️</button>
-                    <button class="delete" @click="${() => this.openPopup(employee)}">🗑️</button>
+                    <button @click="${() => this.handleEdit(employee)}">
+                      <img src="/public/assets/pen.svg" />
+                    </button>
+                    <button @click="${() => this.openPopup(employee)}">
+                      <img src="/public/assets/waste.svg" />
+                    </button>
                   </td>
                 </tr>
               `

@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { store } from '../store/index.js';
+import i18next from '../translations/index.js';
 
 export class EmployeeForm extends LitElement {
   static styles = css`
@@ -44,7 +45,6 @@ export class EmployeeForm extends LitElement {
     button:hover {
       background-color: #ff3300;
     }
-    /* Popup styling */
     .popup-overlay {
       position: fixed;
       top: 0;
@@ -94,7 +94,7 @@ export class EmployeeForm extends LitElement {
     email: { type: String },
     department: { type: String },
     position: { type: String },
-    employeeId: { type: String }, // Mevcut çalışanı güncellemek için
+    employeeId: { type: String },
     showConfirmPopup: { type: Boolean },
     pendingEmployeeData: { type: Object },
   };
@@ -113,7 +113,7 @@ export class EmployeeForm extends LitElement {
     this.showConfirmPopup = false;
     this.pendingEmployeeData = null;
 
-    // URL'deki parametrelerle formu dolduruyoruz (edit modunda)
+    // URL parametrelerinden edit modunda verileri alıyoruz
     setTimeout(() => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('firstName')) {
@@ -125,7 +125,7 @@ export class EmployeeForm extends LitElement {
         this.email = urlParams.get('email');
         this.department = urlParams.get('department');
         this.position = urlParams.get('position');
-        this.employeeId = urlParams.get('id'); // edit modu için employeeId
+        this.employeeId = urlParams.get('id');
       }
     }, 100);
   }
@@ -144,11 +144,11 @@ export class EmployeeForm extends LitElement {
     };
 
     if (this.employeeId) {
-      // Edit modunda onaylama popup'ı açıyoruz
+      // Edit modunda: Önce onay popup'ı aç
       this.pendingEmployeeData = { id: Number(this.employeeId), ...employeeData };
       this.showConfirmPopup = true;
     } else {
-      // Yeni çalışan ekleme
+      // Yeni çalışan ekle
       store.addEmployee(employeeData);
       this.resetForm();
     }
@@ -182,41 +182,35 @@ export class EmployeeForm extends LitElement {
   render() {
     return html`
       <div class="container">
-        <h2>${this.employeeId ? 'Edit Employee' : 'Add New Employee'}</h2>
+        <h2>
+          ${this.employeeId ? i18next.t('editEmployee') : i18next.t('addNewEmployee')}
+        </h2>
         <form @submit="${this.handleSubmit}">
-          <label for="firstName">First Name:</label>
-          <input type="text" id="firstName" .value="${this.firstName}" @input="${(e) => (this.firstName = e.target.value)}" required />
-
-          <label for="lastName">Last Name:</label>
-          <input type="text" id="lastName" .value="${this.lastName}" @input="${(e) => (this.lastName = e.target.value)}" required />
-
-          <label for="dateOfEmployment">Date of Employment:</label>
+          <label for="firstName">${i18next.t('firstName')}:</label>
+          <input maxlength="30" type="text" id="firstName" .value="${this.firstName}" @input="${(e) => (this.firstName = e.target.value)}" required />
+          <label for="lastName">${i18next.t('lastName')}:</label>
+          <input maxlength="30" type="text" id="lastName" .value="${this.lastName}" @input="${(e) => (this.lastName = e.target.value)}" required />
+          <label for="dateOfEmployment">${i18next.t('dateOfEmployment')}:</label>
           <input type="date" id="dateOfEmployment" .value="${this.dateOfEmployment}" @input="${(e) => (this.dateOfEmployment = e.target.value)}" required />
-
-          <label for="dateOfBirth">Date of Birth:</label>
+          <label for="dateOfBirth">${i18next.t('dateOfBirth')}:</label>
           <input type="date" id="dateOfBirth" .value="${this.dateOfBirth}" @input="${(e) => (this.dateOfBirth = e.target.value)}" required />
-
-          <label for="phone">Phone Number:</label>
-          <input type="tel" id="phone" .value="${this.phone}" @input="${(e) => (this.phone = e.target.value)}" required />
-
-          <label for="email">Email Address:</label>
-          <input type="email" id="email" .value="${this.email}" @input="${(e) => (this.email = e.target.value)}" required />
-
-          <label for="department">Department:</label>
+          <label for="phone">${i18next.t('phone')}:</label>
+          <input maxlength="15" type="tel" id="phone" .value="${this.phone}" @input="${(e) => (this.phone = e.target.value)}" required />
+          <label for="email">${i18next.t('email')}:</label>
+          <input maxlength="100" type="email" id="email" .value="${this.email}" @input="${(e) => (this.email = e.target.value)}" required />
+          <label for="department">${i18next.t('department')}:</label>
           <select id="department" .value="${this.department}" @change="${(e) => (this.department = e.target.value)}" required>
             <option value="Analytics">Analytics</option>
             <option value="Tech">Tech</option>
           </select>
-
-          <label for="position">Position:</label>
+          <label for="position">${i18next.t('position')}:</label>
           <select id="position" .value="${this.position}" @change="${(e) => (this.position = e.target.value)}" required>
             <option value="Junior">Junior</option>
             <option value="Medior">Medior</option>
             <option value="Senior">Senior</option>
           </select>
-
           <button type="submit">
-            ${this.employeeId ? 'Save Changes' : 'Add Employee'}
+            ${this.employeeId ? i18next.t('saveChanges') : i18next.t('addEmployee')}
           </button>
         </form>
       </div>
@@ -224,13 +218,13 @@ export class EmployeeForm extends LitElement {
         ? html`
             <div class="popup-overlay">
               <div class="popup">
-                <h2>Confirm Update</h2>
-                <p>Are you sure you want to save changes?</p>
+                <h2>${i18next.t('confirmUpdate')}</h2>
+                <p>${i18next.t('areYouSure')}</p>
                 <button class="proceed" @click="${this.confirmUpdate}">
-                  Proceed
+                  ${i18next.t('proceed')}
                 </button>
                 <button class="cancel" @click="${this.closeConfirmPopup}">
-                  Cancel
+                  ${i18next.t('cancel')}
                 </button>
               </div>
             </div>

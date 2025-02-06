@@ -134,3 +134,6 @@ Please check the [Publishing best practices](https://lit.dev/docs/tools/publishi
 ## More information
 
 See [Get started](https://lit.dev/docs/getting-started/) on the Lit site for more information.
+
+
+## Node Version : 20.11.0

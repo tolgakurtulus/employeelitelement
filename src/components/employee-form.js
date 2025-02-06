@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import page from 'page';
 import { store } from '../store/index.js';
 import i18next from '../translations/index.js';
 
@@ -113,7 +114,6 @@ export class EmployeeForm extends LitElement {
     this.showConfirmPopup = false;
     this.pendingEmployeeData = null;
 
-    // URL parametrelerinden edit modunda verileri alıyoruz
     setTimeout(() => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('firstName')) {
@@ -144,13 +144,12 @@ export class EmployeeForm extends LitElement {
     };
 
     if (this.employeeId) {
-      // Edit modunda: Önce onay popup'ı aç
       this.pendingEmployeeData = { id: Number(this.employeeId), ...employeeData };
       this.showConfirmPopup = true;
     } else {
-      // Yeni çalışan ekle
       store.addEmployee(employeeData);
       this.resetForm();
+      page('/');
     }
   }
 
@@ -160,6 +159,7 @@ export class EmployeeForm extends LitElement {
     }
     this.closeConfirmPopup();
     this.resetForm();
+    page('/');
   }
 
   closeConfirmPopup() {
@@ -187,9 +187,9 @@ export class EmployeeForm extends LitElement {
         </h2>
         <form @submit="${this.handleSubmit}">
           <label for="firstName">${i18next.t('firstName')}:</label>
-          <input maxlength="30" type="text" id="firstName" .value="${this.firstName}" @input="${(e) => (this.firstName = e.target.value)}" required />
+          <input maxlength="30" type="text" id="firstName" .value="${this.firstName}" @input="${(e) => (this.firstName = e.target.value)}" required pattern="[A-Za-zığüşöçİĞÜŞÖÇs]*" title="Only letters and spaces are allowed." />
           <label for="lastName">${i18next.t('lastName')}:</label>
-          <input maxlength="30" type="text" id="lastName" .value="${this.lastName}" @input="${(e) => (this.lastName = e.target.value)}" required />
+          <input maxlength="30" type="text" id="lastName" .value="${this.lastName}" @input="${(e) => (this.lastName = e.target.value)}" required pattern="[A-Za-zığüşöçİĞÜŞÖÇs]*" title="Only letters and spaces are allowed." />
           <label for="dateOfEmployment">${i18next.t('dateOfEmployment')}:</label>
           <input type="date" id="dateOfEmployment" .value="${this.dateOfEmployment}" @input="${(e) => (this.dateOfEmployment = e.target.value)}" required />
           <label for="dateOfBirth">${i18next.t('dateOfBirth')}:</label>

@@ -1,7 +1,7 @@
 // src/components/employee-list.js
 import { LitElement, html, css } from 'lit';
-import { store } from '../store/index.js';
 import page from 'page';
+import { store } from '../store/index.js';
 import i18next, { changeLanguage } from '../translations/index.js';
 
 export class EmployeeList extends LitElement {
@@ -112,6 +112,9 @@ export class EmployeeList extends LitElement {
         margin-left: 13px;
         cursor: pointer;
       }
+      img:first-child {
+        height: 22px;
+      }
       h2 {
         font-size: 23px;
         font-weight: 100;
@@ -165,7 +168,7 @@ export class EmployeeList extends LitElement {
     }
 
     .list-item {
-      flex: 1 1 calc(31% - 10px); /* flex-grow, flex-shrink, flex-basis */
+      flex: 1 1 calc(31% - 10px);
       max-width: 31.3%;
       margin-bottom: 15px;
       background-color: white;
@@ -288,7 +291,7 @@ export class EmployeeList extends LitElement {
       }
 
       .list-item {
-        flex: 1 1 calc(49% - 20px); /* flex-grow, flex-shrink, flex-basis */
+        flex: 1 1 calc(49% - 20px);
         max-width: 49.5%;
       }
     }
@@ -323,7 +326,7 @@ export class EmployeeList extends LitElement {
       }
 
       .list-item {
-        flex: 1 1 calc(100% - 20px); /* flex-grow, flex-shrink, flex-basis */
+        flex: 1 1 calc(100% - 20px);
         max-width: 101%;
       }
     }
@@ -336,7 +339,7 @@ export class EmployeeList extends LitElement {
     showPopup: { type: Boolean },
     selectedEmployee: { type: Object },
     lang: { type: String },
-    viewMode: { type: String }, // New property to track the view mode
+    viewMode: { type: String },
   };
 
   constructor() {
@@ -347,7 +350,7 @@ export class EmployeeList extends LitElement {
     this.showPopup = false;
     this.selectedEmployee = null;
     this.lang = localStorage.getItem('lang') || 'en';
-    this.viewMode = 'table'; // Default view mode is table
+    this.viewMode = localStorage.getItem('viewMode') || 'table';
     store.subscribe(this._updateEmployees.bind(this));
     this.employees = store.employees;
   }
@@ -359,7 +362,8 @@ export class EmployeeList extends LitElement {
 
   get paginatedEmployees() {
     const start = (this.currentPage - 1) * this.itemsPerPage;
-    return this.employees.slice(start, start + this.itemsPerPage);
+    const sortedEmployees = [...this.employees].reverse(); // Reverse the employee list
+    return sortedEmployees.slice(start, start + this.itemsPerPage);
   }
 
   changePage(page) {
@@ -397,9 +401,11 @@ export class EmployeeList extends LitElement {
 
   tabeView() {
     this.viewMode = 'table';
+    localStorage.setItem('viewMode', 'table');
   }
   listView() {
     this.viewMode = 'list';
+    localStorage.setItem('viewMode', 'list');
   }
 
   renderTableView() {

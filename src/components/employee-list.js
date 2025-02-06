@@ -9,6 +9,11 @@ export class EmployeeList extends LitElement {
       font-family: Arial, sans-serif;
     }
 
+    button:hover,
+    a:hover {
+      filter: brightness(1.1);
+    }
+
     .c-headerup {
       font-size: 11px;
       font-weight: 100;
@@ -91,9 +96,10 @@ export class EmployeeList extends LitElement {
       }
     }
     .pagination {
-      margin-top: 10px;
+      margin-top: 20px;
       display: flex;
       justify-content: center;
+      align-items: center;
       gap: 5px;
     }
     .page {
@@ -106,6 +112,16 @@ export class EmployeeList extends LitElement {
       border: none;
       border-radius: 50%;
     }
+    /* Butonların varsayılan stili */
+    .arrow {
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .arrow:disabled {
+      cursor: default;
+    }
     /* Popup Styling */
     .popup-overlay {
       position: fixed;
@@ -114,25 +130,43 @@ export class EmployeeList extends LitElement {
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.6);
-      display: none;
+      display: flex;
       align-items: center;
       justify-content: center;
     }
     .popup {
       background: white;
       padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      width: 300px;
+      border-radius: 3px;
+      width: 400px;
+
+      p {
+        color: #707070;
+        font-size: 15px;
+      }
     }
-    .popup h2 {
-      color: #ff6600;
+    .popup__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      h2 {
+        color: #ff6600;
+        margin: 0;
+        font-size: 20px;
+      }
+
+      img {
+        height: 20px;
+        cursor: pointer;
+      }
     }
     .popup button {
       margin-top: 10px;
       padding: 10px;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      width: 100%;
     }
     .popup .proceed {
       background-color: #ff6600;
@@ -181,12 +215,13 @@ export class EmployeeList extends LitElement {
   }
 
   handleEdit(employee) {
-    const employeeWithId = { ...employee, id: employee.id }; // employee nesnesi id'yi içermelidir
+    const employeeWithId = { ...employee, id: employee.id };
     const queryParams = new URLSearchParams(employeeWithId).toString();
     page(`/add-employee?${queryParams}`);
   }
 
   openPopup(employee) {
+    console.log('🚀 ~ employee:', employee);
     this.selectedEmployee = employee;
     this.showPopup = true;
   }
@@ -198,13 +233,18 @@ export class EmployeeList extends LitElement {
 
   deleteEmployee() {
     if (this.selectedEmployee) {
-      // Silme işlemi burada yapılacak, örneğin:
-      store.removeEmployee(this.selectedEmployee.id); // store'dan silme
+      store.removeEmployee(this.selectedEmployee.id);
     }
     this.closePopup();
   }
 
   render() {
+    const totalPages = Math.ceil(this.employees.length / this.itemsPerPage);
+    // Belirleyelim: eğer ilk sayfada isek sol (önceki) buton gri, eğer son sayfada isek sağ (sonraki) buton gri,
+    // diğer durumlarda her iki buton da turuncu.
+    const prevColor = this.currentPage === 1 ? 'grey' : '#ff6600';
+    const nextColor = this.currentPage === totalPages ? 'grey' : '#ff6600';
+
     return html`
       <div class="c-headerup">
         Employee List (Table View)
@@ -266,27 +306,45 @@ export class EmployeeList extends LitElement {
         </table>
 
         <div class="pagination">
-          ${[...Array(Math.ceil(this.employees.length / this.itemsPerPage))].map(
+          <!-- Önceki (sol) ok -->
+          <button class="arrow" style="color: ${prevColor};" ?disabled="${this.currentPage === 1}" @click="${() => this.changePage(this.currentPage - 1)}">
+            &lt;
+          </button>
+
+          <!-- Sayfa numaraları -->
+          ${[...Array(totalPages)].map(
             (_, i) => html`
               <span class="page ${this.currentPage === i + 1 ? 'active' : ''}" @click="${() => this.changePage(i + 1)}">
                 ${i + 1}
               </span>
             `
           )}
-        </div>
-      </div>
 
-      <!-- Popup -->
-      <div class="popup-overlay" style="display: ${this.showPopup ? 'flex' : 'none'}">
-        <div class="popup">
-          <h2>Are you sure?</h2>
-          <p>
-            Selected Employee record of ${this.selectedEmployee ? this.selectedEmployee.firstName : ''} ${this.selectedEmployee ? this.selectedEmployee.lastName : ''} will be deleted.
-          </p>
-          <button class="proceed" @click="${this.deleteEmployee}">Proceed</button>
-          <button class="cancel" @click="${this.closePopup}">Cancel</button>
+          <!-- Sonraki (sağ) ok -->
+          <button class="arrow" style="color: ${nextColor};" ?disabled="${this.currentPage === totalPages}" @click="${() => this.changePage(this.currentPage + 1)}">
+            &gt;
+          </button>
         </div>
       </div>
+      ${this.showPopup
+        ? html`
+            <div class="popup-overlay">
+              <div class="popup">
+                <div class="popup__header">
+                  <h2>Are you sure?</h2>
+                  <img @click="${this.closePopup}" src="/public/assets/close.svg" />
+                </div>
+                <p>
+                  Selected Employee record of ${this.selectedEmployee ? this.selectedEmployee.firstName : ''} ${this.selectedEmployee ? this.selectedEmployee.lastName : ''} will be deleted.
+                </p>
+                <button class="proceed" @click="${this.deleteEmployee}">
+                  Proceed
+                </button>
+                <button class="cancel" @click="${this.closePopup}">Cancel</button>
+              </div>
+            </div>
+          `
+        : ''}
     `;
   }
 }

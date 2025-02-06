@@ -44,6 +44,45 @@ export class EmployeeForm extends LitElement {
     button:hover {
       background-color: #ff3300;
     }
+    /* Popup styling */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      width: 300px;
+    }
+    .popup h2 {
+      color: #ff6600;
+    }
+    .popup button {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .popup .proceed {
+      background-color: #ff6600;
+      color: white;
+      border: none;
+    }
+    .popup .cancel {
+      background-color: white;
+      border: 1px solid #ff6600;
+      color: #ff6600;
+    }
   `;
 
   static properties = {
@@ -55,7 +94,9 @@ export class EmployeeForm extends LitElement {
     email: { type: String },
     department: { type: String },
     position: { type: String },
-    employeeId: { type: String }, // Added for updating existing employees
+    employeeId: { type: String }, // Mevcut çalışanı güncellemek için
+    showConfirmPopup: { type: Boolean },
+    pendingEmployeeData: { type: Object },
   };
 
   constructor() {
@@ -68,8 +109,11 @@ export class EmployeeForm extends LitElement {
     this.email = '';
     this.department = 'Analytics';
     this.position = 'Junior';
-    this.employeeId = ''; // Initialize the employeeId for update functionality
+    this.employeeId = '';
+    this.showConfirmPopup = false;
+    this.pendingEmployeeData = null;
 
+    // URL'deki parametrelerle formu dolduruyoruz (edit modunda)
     setTimeout(() => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('firstName')) {
@@ -81,7 +125,7 @@ export class EmployeeForm extends LitElement {
         this.email = urlParams.get('email');
         this.department = urlParams.get('department');
         this.position = urlParams.get('position');
-        this.employeeId = urlParams.get('id'); // Get employee ID for updates
+        this.employeeId = urlParams.get('id'); // edit modu için employeeId
       }
     }, 100);
   }
@@ -100,13 +144,27 @@ export class EmployeeForm extends LitElement {
     };
 
     if (this.employeeId) {
-      // Güncelleme için employeeData'ya id ekleyip tek parametre olarak gönderiyoruz
-      store.updateEmployee({ id: Number(this.employeeId), ...employeeData });
+      // Edit modunda onaylama popup'ı açıyoruz
+      this.pendingEmployeeData = { id: Number(this.employeeId), ...employeeData };
+      this.showConfirmPopup = true;
     } else {
       // Yeni çalışan ekleme
       store.addEmployee(employeeData);
+      this.resetForm();
     }
+  }
+
+  confirmUpdate() {
+    if (this.pendingEmployeeData) {
+      store.updateEmployee(this.pendingEmployeeData);
+    }
+    this.closeConfirmPopup();
     this.resetForm();
+  }
+
+  closeConfirmPopup() {
+    this.showConfirmPopup = false;
+    this.pendingEmployeeData = null;
   }
 
   resetForm() {
@@ -118,7 +176,7 @@ export class EmployeeForm extends LitElement {
     this.email = '';
     this.department = 'Analytics';
     this.position = 'Junior';
-    this.employeeId = ''; // Reset the employee ID
+    this.employeeId = '';
   }
 
   render() {
@@ -157,9 +215,27 @@ export class EmployeeForm extends LitElement {
             <option value="Senior">Senior</option>
           </select>
 
-          <button type="submit">${this.employeeId ? 'Save Changes' : 'Add Employee'}</button>
+          <button type="submit">
+            ${this.employeeId ? 'Save Changes' : 'Add Employee'}
+          </button>
         </form>
       </div>
+      ${this.showConfirmPopup
+        ? html`
+            <div class="popup-overlay">
+              <div class="popup">
+                <h2>Confirm Update</h2>
+                <p>Are you sure you want to save changes?</p>
+                <button class="proceed" @click="${this.confirmUpdate}">
+                  Proceed
+                </button>
+                <button class="cancel" @click="${this.closeConfirmPopup}">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          `
+        : ''}
     `;
   }
 }
